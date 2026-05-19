@@ -1,0 +1,33 @@
+# Rendered output — reproducible from the build script, don't bloat the repo
+renders/
+*.mp4
+*.gif
+*.webm
+*.mov
+renders/*.png
+renders/*.jpg
+renders/*.jpeg
+
+# Loose images at repo root are also output
+/*.png
+/*.jpg
+/*.jpeg
+
+# Blender backups & autosaves
+*.blend1
+*.blend2
+*.blend@
+*.blend.lock
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Python / venv (if you add tooling)
+__pycache__/
+*.pyc
+.venv/
+venv/

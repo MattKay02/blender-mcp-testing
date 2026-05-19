@@ -2,13 +2,15 @@
 build_matt_logo.py
 ------------------
 A clean, web-ready 3D logo of "Matt" — no animation, no ground plane, no camera,
-just the four gold letters centered at the origin. Export this as .glb and embed
-on any webpage with <model-viewer>, Three.js, or React Three Fiber.
+just the four gold letters standing upright and centered at the origin. Export
+as .glb and embed on any webpage with <model-viewer>, Three.js, or React Three Fiber.
 
 Run inside Blender, or via blender-mcp execute_blender_code.
 """
 
 import bpy
+import math
+
 
 # ---------- 1. CLEAN start ----------
 for obj in list(bpy.data.objects):
@@ -52,13 +54,11 @@ for i, ch in enumerate(LETTERS):
     obj.data.align_x = 'CENTER'
     obj.data.align_y = 'CENTER'
     bpy.ops.object.convert(target='MESH')
-    bpy.ops.object.shade_smooth()
-    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
     obj.data.materials.append(gold)
     letter_objs.append(obj)
 
 
-# ---------- 5. LAY OUT and PARENT under one empty for easy export/transform ----------
+# ---------- 5. LAY OUT horizontally based on each letter's actual width ----------
 GAP = 0.14
 widths = [o.dimensions.x for o in letter_objs]
 total = sum(widths) + GAP * (len(widths) - 1)
@@ -69,27 +69,46 @@ for obj, w in zip(letter_objs, widths):
     obj.location.z = 0
     cursor += w + GAP
 
-# Group all letters under one parent empty so they move/rotate as one in 3-party viewers
-bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0, 0, 0))
-root = bpy.context.active_object
-root.name = "Matt_Logo"
+
+# ---------- 6. ROTATE to stand text upright ----------
+# Blender creates text flat on XY facing +Z. Rotate +90deg around X so it stands in the
+# XZ plane with top at +Z (proper "up" after the glTF Y-up conversion). The viewer then
+# sees it from the correct angle when camera-orbit is set to "180deg 75deg" or similar.
 for obj in letter_objs:
-    obj.parent = root
-    obj.matrix_parent_inverse = root.matrix_world.inverted()
+    obj.rotation_euler[0] = math.radians(90)
+
+# Bake the rotation into vertex data so glTF export sees clean orientation
+bpy.ops.object.select_all(action='DESELECT')
+for obj in letter_objs:
+    obj.select_set(True)
+bpy.context.view_layer.objects.active = letter_objs[0]
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
 
-# ---------- 6. JOIN INTO A SINGLE MESH (optional but tidier .glb) ----------
+# ---------- 7. JOIN INTO A SINGLE MESH ----------
 bpy.ops.object.select_all(action='DESELECT')
 for obj in letter_objs:
     obj.select_set(True)
 bpy.context.view_layer.objects.active = letter_objs[0]
 bpy.ops.object.join()
 joined = bpy.context.active_object
-joined.name = "Matt_Logo_Mesh"
-joined.parent = root
-# Recenter origin to the geometric center so rotation in the browser feels natural
+joined.name = "Matt_Logo"
+
+
+# ---------- 8. SHADING: smooth-by-angle (keeps flat caps flat, smooths bevels) ----------
+# Plain shade_smooth interpolates across flat faces and produces visible streaks on
+# the flat top/bottom caps of extruded text. Auto-smooth at ~30 degrees solves this:
+# only edges below 30deg between faces get smooth-interpolated normals.
+try:
+    bpy.ops.object.shade_auto_smooth(angle=math.radians(30))
+except Exception:
+    # Fallback for older Blender versions where the operator name differs
+    bpy.ops.object.shade_smooth_by_angle(angle=math.radians(30))
+
+
+# ---------- 9. CENTER ORIGIN, then move to world origin ----------
 bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
 joined.location = (0, 0, 0)
 
 
-print("OK. Root empty:", root.name, "| mesh:", joined.name, "| dims:", tuple(round(d,2) for d in joined.dimensions))
+print("OK | mesh:", joined.name, "| dims:", tuple(round(d, 2) for d in joined.dimensions))

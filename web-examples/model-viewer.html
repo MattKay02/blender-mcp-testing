@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Matt Wave — interactive 3D</title>
+  <title>Matt — interactive 3D logo</title>
 
   <!-- Google's <model-viewer> web component. Zero build, just one tag. -->
   <script
@@ -27,37 +27,45 @@
     model-viewer {
       width: 100%;
       height: 520px;
-      background: linear-gradient(180deg, #1b2030 0%, #0e1118 100%);
+      background: radial-gradient(ellipse at center, #1c2238 0%, #0a0d14 75%);
       border-radius: 10px;
     }
+    .hint { font-size: 0.85rem; color: #6b7384; margin-top: 0.75rem; }
     code { background: #1a1e27; padding: 0.1rem 0.4rem; border-radius: 4px; }
   </style>
 </head>
 <body>
   <main>
     <div class="card">
-      <h1>Matt — interactive 3D (drag to rotate)</h1>
+      <h1>Matt — interactive 3D logo</h1>
       <p>
-        Click + drag to orbit. Scroll to zoom. The wave-pop animation plays on loop.
-        This is the same <code>matt_wave.glb</code> from <code>exports/</code> — 233 KB,
-        rendered live by your browser via Three.js.
+        Drag to rotate, scroll to zoom. Rendered live by your browser via WebGL.
+        Source file: <code>exports/matt_logo.glb</code> — ~30 KB.
       </p>
 
       <model-viewer
-        src="../exports/matt_wave.glb"
-        alt="3D model of the word Matt with a wave pop animation"
+        src="../exports/matt_logo.glb"
+        alt="Interactive 3D model of the word Matt in gold"
         camera-controls
         touch-action="pan-y"
         auto-rotate
-        autoplay
-        animation-name="*"
-        exposure="1.1"
-        shadow-intensity="0.8"
+        auto-rotate-delay="1500"
+        rotation-per-second="20deg"
+        interaction-prompt="none"
+        exposure="1.0"
+        shadow-intensity="1"
+        shadow-softness="0.8"
         environment-image="neutral"
-        camera-orbit="-15deg 75deg 8m"
-        min-camera-orbit="auto auto 4m"
+        camera-orbit="-25deg 75deg 7m"
+        field-of-view="30deg"
+        min-camera-orbit="auto auto 3m"
         max-camera-orbit="auto auto 14m">
+        <div slot="poster" style="color:#9aa3b2;padding:1rem;">Loading 3D model...</div>
       </model-viewer>
+
+      <p class="hint">
+        Tip: same <code>.glb</code> file can drop into Three.js / React Three Fiber the same way.
+      </p>
     </div>
   </main>
 </body>
